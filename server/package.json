@@ -9,6 +9,7 @@
 		"dev": "concurrently \"npx tsc -w\" \"nodemon --exec ts-node src/index.ts --clear-cache\"",
 		"prisma:generate": "prisma generate",
 		"prisma:migrate": "prisma migrate dev",
+		"postprisma:generate": "shx cp -r src/generated/prisma/index.d.ts ../client/src/types/prisma.d.ts",
 		"prisma:studio": "prisma studio"
 	},
 	"keywords": [],
@@ -34,6 +35,7 @@
 		"@types/cors": "^2.8.19",
 		"@types/express": "^5.0.6",
 		"nodemon": "^3.1.11",
+		"shx": "^0.4.0",
 		"ts-node": "^10.9.2",
 		"typescript": "^5.9.3"
 	}
