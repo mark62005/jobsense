@@ -1,0 +1,163 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String   @id
+  name      String
+  email     String   @unique
+  imageUrl  String   @map("image_url")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  notificationSetting           UserNotificationSetting?
+  resume                        Resume?
+  userSettingUnderOrganizations UserSettingUnderOrganization[]
+  applications                  Application[]
+
+  @@map("users")
+}
+
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  imageUrl  String   @map("image_url")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  jobListings                   JobListing[]
+  userSettingUnderOrganizations UserSettingUnderOrganization[]
+
+  @@map("organizations")
+}
+
+enum WageInterval {
+  Hourly
+  Yearly
+}
+
+enum LocationRequirement {
+  In_Office
+  Remote
+  Hybrid
+}
+
+enum ExperienceLevel {
+  Junior
+  Mid_Level
+  Senior
+}
+
+enum JobListingStatus {
+  Draft
+  Published
+  Delisted
+}
+
+enum JobListingType {
+  Internship
+  Part_Time
+  Full_Time
+}
+
+model JobListing {
+  id                  String              @id @default(cuid())
+  title               String
+  description         String
+  wage                Int?
+  wageInterval        WageInterval        @default(Yearly) @map("wage_interval")
+  stateAbbreviation   String?             @map("state_abbreviation")
+  city                String?
+  isFeatured          Boolean             @default(false) @map("is_featured")
+  locationRequirement LocationRequirement @default(In_Office) @map("location_requirement")
+  experienceLevel     ExperienceLevel     @default(Junior) @map("experience_level")
+  status              JobListingStatus    @default(Draft)
+  type                JobListingType      @default(Full_Time)
+  postedAt            DateTime            @map("posted_at")
+  createdAt           DateTime            @default(now()) @map("created_at")
+  updatedAt           DateTime            @default(now()) @updatedAt @map("updated_at")
+
+  applications   Application[]
+  organizationId String        @map("organization_id")
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([stateAbbreviation])
+  @@index([status])
+  @@index([isFeatured])
+  @@index([experienceLevel])
+  @@index([locationRequirement])
+  @@map("job_listings")
+}
+
+enum ApplicationStage {
+  Interested
+  Applied
+  Interviewed
+  Hired
+  Denied
+}
+
+model Application {
+  id          String           @id @default(cuid())
+  coverLetter String?          @map("cover_letter")
+  rating      Int?
+  stage       ApplicationStage @default(Interested)
+  createdAt   DateTime         @default(now()) @map("created_at")
+  updatedAt   DateTime         @default(now()) @updatedAt @map("updated_at")
+
+  jobListingId String     @map("job_listing_id")
+  jobListing   JobListing @relation(fields: [jobListingId], references: [id], onDelete: Cascade)
+  userId       String     @map("user_id")
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, jobListingId])
+  @@map("applications")
+}
+
+model Resume {
+  fileUrl   String   @map("file_url")
+  fileKey   String   @map("file_key")
+  version   Int      @default(1)
+  aiSummary String?  @map("ai_summary")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId])
+  @@map("resumes")
+}
+
+model UserSettingUnderOrganization {
+  newApplicationEmailNotifications Boolean  @default(false) @map("new_application_email_notifications")
+  minimumRating                    Int?     @map("minimum_rating")
+  createdAt                        DateTime @default(now()) @map("created_at")
+  updatedAt                        DateTime @default(now()) @updatedAt @map("updated_at")
+
+  userId         String       @map("user_id")
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organizationId String       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, organizationId])
+  @@map("user_setting_under_organizations")
+}
+
+model UserNotificationSetting {
+  newJobEmailNotifications Boolean  @default(false) @map("new_job_email_notifications")
+  aiPrompt                 String?  @map("ai_prompt")
+  createdAt                DateTime @default(now()) @map("created_at")
+  updatedAt                DateTime @default(now()) @updatedAt @map("updated_at")
+
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId])
+  @@map("user_notification_settings")
+}
