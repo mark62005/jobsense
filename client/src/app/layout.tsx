@@ -4,6 +4,7 @@ import type { WithChildrenProps } from "@/types/react";
 import { Geist, Geist_Mono } from "next/font/google";
 
 import "./globals.css";
+import AppProviders from "./providers";
 
 const geistSans = Geist({
 	variable: "--font-geist-sans",
@@ -22,12 +23,14 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<WithChildrenProps>) {
 	return (
-		<html lang="en">
-			<body
-				className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-			>
-				{children}
-			</body>
-		</html>
+		<AppProviders>
+			<html lang="en">
+				<body
+					className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+				>
+					{children}
+				</body>
+			</html>
+		</AppProviders>
 	);
 }
