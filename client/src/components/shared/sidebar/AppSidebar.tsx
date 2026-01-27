@@ -1,5 +1,7 @@
-import { Suspense, type ComponentProps } from "react";
+import type { ComponentProps } from "react";
 
+import Link from "next/link";
+import { LogInIcon } from "lucide-react";
 import {
 	Sidebar,
 	SidebarContent,
@@ -11,9 +13,10 @@ import {
 	SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import AppLogo from "../AppLogo";
-import { SignedOut } from "@clerk/nextjs";
-import Link from "next/link";
-import { LogInIcon } from "lucide-react";
+import {
+	AppSignedIn,
+	AppSignedOut,
+} from "@/services/clerk/components/AuthStatuses";
 import NavUser from "@/features/users/components/NavUser";
 
 function AppSidebarHeader() {
@@ -44,25 +47,25 @@ function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
 			<SidebarContent>
 				<SidebarGroup>
 					<SidebarMenu>
-						<Suspense>
-							<SignedOut>
-								<SidebarMenuItem>
-									<SidebarMenuButton asChild>
-										<Link href="/sign-in">
-											<LogInIcon />
-											<span>Sign In</span>
-										</Link>
-									</SidebarMenuButton>
-								</SidebarMenuItem>
-							</SignedOut>
-						</Suspense>
+						<AppSignedOut>
+							<SidebarMenuItem>
+								<SidebarMenuButton asChild>
+									<Link href="/sign-in">
+										<LogInIcon />
+										<span>Sign In</span>
+									</Link>
+								</SidebarMenuButton>
+							</SidebarMenuItem>
+						</AppSignedOut>
 					</SidebarMenu>
 				</SidebarGroup>
 			</SidebarContent>
 
-			<SidebarFooter>
-				<NavUser />
-			</SidebarFooter>
+			<AppSignedIn>
+				<SidebarFooter>
+					<NavUser />
+				</SidebarFooter>
+			</AppSignedIn>
 		</Sidebar>
 	);
 }
