@@ -8,6 +8,7 @@ import "dotenv/config";
 import { error } from "winston";
 
 /* ROUTE IMPORTS */
+import inngestRoutes from "./routes/inngestRoutes";
 
 const app = express();
 
@@ -33,6 +34,9 @@ app.use("/test", async (req, res) => {
 
 	throw new Error("Testing error");
 });
+
+/* INNGEST ROUTES */
+app.use("/api/inngest", inngestRoutes);
 
 /* ERROR HANDLING */
 app.use(errorHandler);
