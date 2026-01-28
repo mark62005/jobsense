@@ -10,7 +10,9 @@
 		"prisma:generate": "prisma generate",
 		"prisma:migrate": "prisma migrate dev",
 		"postprisma:generate": "shx cp -r src/generated/prisma/index.d.ts ../client/src/types/prisma.d.ts",
-		"prisma:studio": "prisma studio"
+		"prisma:studio": "prisma studio",
+		"inngest:dev": "inngest-cli dev -u http://localhost:8000/api/inngest",
+		"dev:all": "mprocs"
 	},
 	"keywords": [],
 	"author": "Mark Wong",
@@ -20,6 +22,7 @@
 	},
 	"packageManager": "pnpm@10.28.1",
 	"dependencies": {
+		"@clerk/nextjs": "^6.36.10",
 		"@prisma/adapter-pg": "^7.3.0",
 		"@prisma/client": "^7.3.0",
 		"concurrently": "^9.2.1",
@@ -27,13 +30,17 @@
 		"dotenv": "^17.2.3",
 		"express": "^5.2.1",
 		"helmet": "^8.1.0",
+		"inngest": "^3.49.3",
+		"mprocs": "^0.8.3",
 		"prisma": "^7.3.0",
 		"rimraf": "^6.1.2",
+		"svix": "^1.84.1",
 		"winston": "^3.19.0"
 	},
 	"devDependencies": {
 		"@types/cors": "^2.8.19",
 		"@types/express": "^5.0.6",
+		"inngest-cli": "^1.16.1",
 		"nodemon": "^3.1.11",
 		"shx": "^0.4.0",
 		"ts-node": "^10.9.2",

@@ -1,0 +1,6 @@
+procs:
+  express:
+    cmd: ["pnpm", "run", "dev"]
+
+  inngest:
+    cmd: ["pnpm", "run", "inngest:dev"]
