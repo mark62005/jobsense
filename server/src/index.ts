@@ -3,6 +3,7 @@ import cors from "cors";
 import helmet from "helmet";
 import { logger } from "./logger";
 import { errorHandler } from "./middlewares/error-handler";
+import { clerkMiddleware } from "@clerk/express";
 
 import "dotenv/config";
 import { error } from "winston";
@@ -27,6 +28,9 @@ app.use(
 /* BODY PARSING */
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+/* CLERK */
+app.use(clerkMiddleware());
 
 /* ROUTES */
 app.use("/test", async (req, res) => {
