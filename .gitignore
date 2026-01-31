@@ -16,6 +16,7 @@
 # next.js
 client/.next/
 /out/
+client/src/generated
 
 # production
 /build
