@@ -1,9 +1,8 @@
 "use client";
 
-import type { User } from "@/types/prisma";
 import type { TNavUserLink } from "./NavUserLink";
 
-import { useClerk } from "@clerk/nextjs";
+import { useClerk, useUser } from "@clerk/nextjs";
 
 import {
 	CircleUserRoundIcon,
@@ -22,26 +21,23 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-	SidebarMenu,
 	SidebarMenuButton,
 	SidebarMenuItem,
 	useSidebar,
 } from "@/components/ui/sidebar";
-import NavUserLink from "./NavUserLink";
 import { SignOutButton } from "@/services/clerk/components/AuthButtons";
-
-const user = {
-	name: "shadcn",
-	email: "m@example.com",
-	avatar: "/avatars/shadcn.jpg",
-};
+import NavUserLink from "./NavUserLink";
 
 interface UserInfoProps {
-	user: User;
+	userInfo: {
+		name: string;
+		email: string;
+		imageUrl: string;
+	};
 }
 
-function UserInfo({ user }: UserInfoProps) {
-	const { name, email, imageUrl } = user;
+function UserInfo({ userInfo }: UserInfoProps) {
+	const { name, email, imageUrl } = userInfo;
 
 	const nameInitials = name
 		.split(" ")
@@ -71,14 +67,6 @@ function UserInfo({ user }: UserInfoProps) {
 }
 
 function NavUser() {
-	const { openUserProfile } = useClerk();
-	const { isMobile, setOpenMobile } = useSidebar();
-
-	function handleProfileClick() {
-		openUserProfile();
-		setOpenMobile(false);
-	}
-
 	const NAV_USER_LINKS_CONFIG: TNavUserLink[] = [
 		{
 			Icon: CircleUserRoundIcon,
@@ -92,56 +80,75 @@ function NavUser() {
 		},
 	] as const;
 
+	const { openUserProfile } = useClerk();
+	const { isMobile, setOpenMobile } = useSidebar();
+
+	const { user, isLoaded } = useUser();
+
+	function handleProfileClick() {
+		openUserProfile();
+		setOpenMobile(false);
+	}
+
+	if (!isLoaded) return <div>Loading user...</div>;
+	if (!user || user === null) {
+		return <div>Error fetching user.</div>;
+	}
+
+	const userInfo = {
+		name: user.fullName ?? "",
+		email: user.primaryEmailAddress?.emailAddress ?? "",
+		imageUrl: user.imageUrl,
+	};
+
 	return (
-		<SidebarMenu>
-			<SidebarMenuItem>
-				<DropdownMenu>
-					<DropdownMenuTrigger asChild>
-						<SidebarMenuButton
-							size="lg"
-							className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-						>
-							<UserInfo user={user} />
-
-							<EllipsisVerticalIcon className="ml-auto size-4" />
-						</SidebarMenuButton>
-					</DropdownMenuTrigger>
-
-					<DropdownMenuContent
-						className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
-						side={isMobile ? "bottom" : "right"}
-						align="end"
-						sideOffset={4}
+		<SidebarMenuItem>
+			<DropdownMenu>
+				<DropdownMenuTrigger asChild>
+					<SidebarMenuButton
+						size="lg"
+						className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
 					>
-						<DropdownMenuLabel className="p-0 font-normal">
-							<div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-								<UserInfo user={user} />
-							</div>
-						</DropdownMenuLabel>
+						<UserInfo userInfo={userInfo} />
 
-						<DropdownMenuSeparator />
+						<EllipsisVerticalIcon className="ml-auto size-4" />
+					</SidebarMenuButton>
+				</DropdownMenuTrigger>
 
-						<DropdownMenuGroup>
-							{NAV_USER_LINKS_CONFIG.map((link) => (
-								<NavUserLink
-									key={link.label}
-									link={link}
-								/>
-							))}
-						</DropdownMenuGroup>
+				<DropdownMenuContent
+					className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
+					side={isMobile ? "bottom" : "right"}
+					align="end"
+					sideOffset={4}
+				>
+					<DropdownMenuLabel className="p-0 font-normal">
+						<div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+							<UserInfo userInfo={userInfo} />
+						</div>
+					</DropdownMenuLabel>
 
-						<DropdownMenuSeparator />
+					<DropdownMenuSeparator />
 
-						<SignOutButton>
-							<DropdownMenuItem className="cursor-pointer">
-								<LogOutIcon />
-								Log out
-							</DropdownMenuItem>
-						</SignOutButton>
-					</DropdownMenuContent>
-				</DropdownMenu>
-			</SidebarMenuItem>
-		</SidebarMenu>
+					<DropdownMenuGroup>
+						{NAV_USER_LINKS_CONFIG.map((link) => (
+							<NavUserLink
+								key={link.label}
+								link={link}
+							/>
+						))}
+					</DropdownMenuGroup>
+
+					<DropdownMenuSeparator />
+
+					<SignOutButton>
+						<DropdownMenuItem className="cursor-pointer">
+							<LogOutIcon />
+							Log out
+						</DropdownMenuItem>
+					</SignOutButton>
+				</DropdownMenuContent>
+			</DropdownMenu>
+		</SidebarMenuItem>
 	);
 }
 export default NavUser;
