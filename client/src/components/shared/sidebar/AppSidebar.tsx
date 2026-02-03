@@ -1,23 +1,15 @@
-import type { ComponentProps } from "react";
+import type { ComponentProps, ReactNode } from "react";
 
-import Link from "next/link";
-import { LogInIcon } from "lucide-react";
 import {
 	Sidebar,
 	SidebarContent,
 	SidebarFooter,
-	SidebarGroup,
 	SidebarHeader,
 	SidebarMenu,
 	SidebarMenuButton,
 	SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import AppLogo from "../AppLogo";
-import {
-	AppSignedIn,
-	AppSignedOut,
-} from "@/services/clerk/components/AuthStatuses";
-import NavUser from "@/features/users/components/NavUser";
 
 function AppSidebarHeader() {
 	return (
@@ -36,36 +28,25 @@ function AppSidebarHeader() {
 	);
 }
 
-function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
+type AppSidebarProps = {
+	contentNode: ReactNode;
+	footerNode: ReactNode;
+} & ComponentProps<typeof Sidebar>;
+
+function AppSidebar({ contentNode, footerNode, ...props }: AppSidebarProps) {
 	return (
 		<Sidebar
 			collapsible="icon"
+			variant="inset"
 			{...props}
 		>
 			<AppSidebarHeader />
 
-			<SidebarContent>
-				<SidebarGroup>
-					<SidebarMenu>
-						<AppSignedOut>
-							<SidebarMenuItem>
-								<SidebarMenuButton asChild>
-									<Link href="/sign-in">
-										<LogInIcon />
-										<span>Sign In</span>
-									</Link>
-								</SidebarMenuButton>
-							</SidebarMenuItem>
-						</AppSignedOut>
-					</SidebarMenu>
-				</SidebarGroup>
-			</SidebarContent>
+			<SidebarContent>{contentNode}</SidebarContent>
 
-			<AppSignedIn>
-				<SidebarFooter>
-					<NavUser />
-				</SidebarFooter>
-			</AppSignedIn>
+			<SidebarFooter>
+				<SidebarMenu>{footerNode}</SidebarMenu>
+			</SidebarFooter>
 		</Sidebar>
 	);
 }
