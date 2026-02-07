@@ -27,7 +27,11 @@ import {
 	useSidebar,
 } from "@/components/ui/sidebar";
 import { SignOutButton } from "@/services/clerk/components/AuthButtons";
-import { UserInfo, UserInfoError, UserInfoSkeleton } from "./UserInfo";
+import {
+	EntityInfo,
+	EntityInfoSkeleton,
+	EntityInfoError,
+} from "@/components/sidebar/shared/EntityInfo";
 import NavUserLink from "./NavUserLink";
 
 function NavUserContent() {
@@ -55,14 +59,20 @@ function NavUserContent() {
 	}
 
 	if (isLoading || (!user && !isError)) {
-		return <UserInfoSkeleton />;
+		return <EntityInfoSkeleton />;
 	}
 
 	if (isError || !user) {
 		console.error("Error loading user: ", error);
 
-		return <UserInfoError />;
+		return <EntityInfoError variant="user" />;
 	}
+
+	const userInfo = {
+		name: user.name,
+		email: user.email,
+		imageUrl: user.imageUrl,
+	};
 
 	return (
 		<SidebarMenuItem>
@@ -72,7 +82,7 @@ function NavUserContent() {
 						size="lg"
 						className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
 					>
-						<UserInfo user={user} />
+						<EntityInfo {...userInfo} />
 
 						<EllipsisVerticalIcon className="ml-auto size-4" />
 					</SidebarMenuButton>
@@ -86,7 +96,7 @@ function NavUserContent() {
 				>
 					<DropdownMenuLabel className="p-0 font-normal">
 						<div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-							<UserInfo user={user} />
+							<EntityInfo {...userInfo} />
 						</div>
 					</DropdownMenuLabel>
 
@@ -118,7 +128,7 @@ function NavUserContent() {
 function NavUser() {
 	return (
 		<ErrorBoundary
-			fallback={<UserInfoError />}
+			fallback={<EntityInfoError variant="user" />}
 			onError={(error) => console.error("NavUser error:", error)}
 		>
 			<NavUserContent />
