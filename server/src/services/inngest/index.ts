@@ -1,4 +1,8 @@
-import type { UserJSON, DeletedObjectJSON } from "@clerk/nextjs/server";
+import type {
+	UserJSON,
+	DeletedObjectJSON,
+	OrganizationJSON,
+} from "@clerk/nextjs/server";
 
 import { CLERK_EVENTS } from "./constants/event-names";
 
@@ -19,6 +23,9 @@ type TEvents = {
 	[CLERK_EVENTS.USER.UPDATED]: IClerkWebhookData<UserJSON>;
 	[CLERK_EVENTS.USER.DELETED]: IClerkWebhookData<DeletedObjectJSON>;
 	/* ORGANIZATION */
+	[CLERK_EVENTS.ORGANIZATION.CREATED]: IClerkWebhookData<OrganizationJSON>;
+	[CLERK_EVENTS.ORGANIZATION.UPDATED]: IClerkWebhookData<OrganizationJSON>;
+	[CLERK_EVENTS.ORGANIZATION.DELETED]: IClerkWebhookData<DeletedObjectJSON>;
 
 	/** APP **/
 	/* JOB LISTING APPLICATION */
