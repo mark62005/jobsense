@@ -1,18 +1,9 @@
-import {
-	CLERK_EVENTS,
-	STEP_VERIFY_WEBHOOK,
-	ORGANIZATION_ERRORS,
-} from "../../constants";
+import { CLERK_EVENTS, STEP_VERIFY_WEBHOOK } from "../../constants";
 
-import { NonRetriableError } from "inngest";
 import { inngest } from "../..";
 import { logger } from "../../../../logger";
 import { verifyWebhookOrThrow } from "../../utils/clerk";
-import {
-	insertUser,
-	insertUserNotificationSetting,
-} from "../../../../features/users/db";
-import { insertOrganization } from "@/features/organizations/db";
+import { insertOrganization } from "../../../../features/organizations/db";
 
 export const clerkCreateOrganization = inngest.createFunction(
 	{
