@@ -1,9 +1,15 @@
-let cachedToken: string | null = null;
+/* eslint-disable react-hooks/rules-of-hooks */
+import { useAuth } from "@clerk/nextjs";
 
-export function setAuthToken(token: string | null) {
-	cachedToken = token;
-}
+export const getAuthToken = async (): Promise<string | null> => {
+	try {
+		// This should be called from a React component context
+		const { getToken } = useAuth();
+		const token = await getToken();
 
-export function getAuthToken() {
-	return cachedToken;
-}
+		return token;
+	} catch (error) {
+		console.error("Error getting auth token:", error);
+		return null;
+	}
+};

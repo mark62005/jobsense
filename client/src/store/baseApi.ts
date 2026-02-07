@@ -1,17 +1,39 @@
+import type {
+	BaseQueryFn,
+	FetchArgs,
+	FetchBaseQueryError,
+} from "@reduxjs/toolkit/query";
+
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { getAuthToken } from "@/features/auth/authToken";
 
-const customBaseQuery = fetchBaseQuery({
-	baseUrl: process.env.NEXT_PUBLIC_API_BASE_URL,
-	prepareHeaders: (headers) => {
-		const token = getAuthToken();
+const customBaseQuery: BaseQueryFn<
+	string | FetchArgs,
+	unknown,
+	FetchBaseQueryError
+> = async (args, api, extraOptions) => {
+	// Get the getToken function from the extra context
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	const { getToken } = (api.extra as any) || {};
 
-		if (token) {
-			headers.set("Authorization", `Bearer ${token}`);
-		}
-		return headers;
-	},
-});
+	const rawBaseQuery = fetchBaseQuery({
+		baseUrl: process.env.NEXT_PUBLIC_API_BASE_URL,
+		prepareHeaders: async (headers) => {
+			if (getToken) {
+				try {
+					const token = await getToken();
+					if (token) {
+						headers.set("Authorization", `Bearer ${token}`);
+					}
+				} catch (error) {
+					console.error("Error fetching token:", error);
+				}
+			}
+			return headers;
+		},
+	});
+
+	return rawBaseQuery(args, api, extraOptions);
+};
 
 export const baseApi = createApi({
 	baseQuery: customBaseQuery,

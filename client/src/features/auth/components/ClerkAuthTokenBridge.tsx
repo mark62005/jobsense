@@ -1,33 +1,37 @@
 "use client";
 
 import { useEffect } from "react";
-import { useAuth } from "@clerk/nextjs";
-import { setAuthToken } from "../authToken";
+import { useUser } from "@clerk/nextjs";
+import { useAppDispatch } from "@/store/hooks";
+import { useGetMeQuery } from "@/features/users/usersApi";
+import { clearUser, setAuthUser, setIsLoading } from "../authSlice";
 
 function ClerkAuthTokenBridge() {
-	const { getToken, isSignedIn } = useAuth();
+	const dispatch = useAppDispatch();
+	const { isSignedIn, isLoaded } = useUser();
+
+	// Only fetch user data if Clerk user is signed in
+	const { data: backendUser, isLoading: isBackendLoading } = useGetMeQuery(
+		undefined,
+		{
+			skip: !isSignedIn, // Don't fetch if not signed in
+		},
+	);
 
 	useEffect(() => {
+		if (!isLoaded || isBackendLoading) {
+			dispatch(setIsLoading(true));
+		}
+
 		if (!isSignedIn) {
-			setAuthToken(null);
+			dispatch(clearUser());
 			return;
 		}
 
-		let isMounted = true;
-
-		async function syncToken() {
-			const token = await getToken();
-			if (isMounted) {
-				setAuthToken(token);
-			}
+		if (backendUser) {
+			dispatch(setAuthUser(backendUser));
 		}
-
-		syncToken();
-
-		return () => {
-			isMounted = false;
-		};
-	}, [getToken, isSignedIn]);
+	}, [isLoaded, isSignedIn, backendUser, dispatch]);
 
 	return null;
 }

@@ -22,7 +22,7 @@ import {
 import { SignInButton } from "@/services/clerk/components/AuthButtons";
 import AppSidebar from "@/components/shared/sidebar/AppSidebar";
 import SidebarNav from "@/components/shared/sidebar/SidebarNav";
-import NavUser from "@/features/users/components/NavUser";
+import NavUser from "@/features/users/components/nav/NavUser";
 import SiteHeader from "@/components/shared/SiteHeader";
 
 const CONTENT_NAV_LINKS_CONFIG: TSidebarNavLink[] = [
