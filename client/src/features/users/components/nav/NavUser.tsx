@@ -2,7 +2,8 @@
 
 import type { TNavUserLink } from "./NavUserLink";
 
-import { useClerk, useUser } from "@clerk/nextjs";
+import { useClerk } from "@clerk/nextjs";
+import { useGetMeQuery } from "../../usersApi";
 
 import {
 	CircleUserRoundIcon,
@@ -10,7 +11,7 @@ import {
 	LogOutIcon,
 	SettingsIcon,
 } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ErrorBoundary } from "react-error-boundary";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -26,47 +27,10 @@ import {
 	useSidebar,
 } from "@/components/ui/sidebar";
 import { SignOutButton } from "@/services/clerk/components/AuthButtons";
+import { UserInfo, UserInfoError, UserInfoSkeleton } from "./UserInfo";
 import NavUserLink from "./NavUserLink";
 
-interface UserInfoProps {
-	userInfo: {
-		name: string;
-		email: string;
-		imageUrl: string;
-	};
-}
-
-function UserInfo({ userInfo }: UserInfoProps) {
-	const { name, email, imageUrl } = userInfo;
-
-	const nameInitials = name
-		.split(" ")
-		.slice(0, 2)
-		.map((str: string) => str[0])
-		.join("");
-
-	return (
-		<>
-			<Avatar className="size-8 rounded-lg grayscale">
-				<AvatarImage
-					src={imageUrl}
-					alt={name}
-				/>
-				<AvatarFallback className="rounded-lg uppercase">
-					{nameInitials}
-				</AvatarFallback>
-			</Avatar>
-
-			<div className="grid flex-1 text-left text-sm leading-tight">
-				<span className="truncate font-medium">{name}</span>
-
-				<span className="text-muted-foreground truncate text-xs">{email}</span>
-			</div>
-		</>
-	);
-}
-
-function NavUser() {
+function NavUserContent() {
 	const NAV_USER_LINKS_CONFIG: TNavUserLink[] = [
 		{
 			Icon: CircleUserRoundIcon,
@@ -83,23 +47,22 @@ function NavUser() {
 	const { openUserProfile } = useClerk();
 	const { isMobile, setOpenMobile } = useSidebar();
 
-	const { user, isLoaded } = useUser();
+	const { data: user, isLoading, isError, error } = useGetMeQuery();
 
 	function handleProfileClick() {
 		openUserProfile();
 		setOpenMobile(false);
 	}
 
-	if (!isLoaded) return <div>Loading user...</div>;
-	if (!user || user === null) {
-		return <div>Error fetching user.</div>;
+	if (isLoading || (!user && !isError)) {
+		return <UserInfoSkeleton />;
 	}
 
-	const userInfo = {
-		name: user.fullName ?? "",
-		email: user.primaryEmailAddress?.emailAddress ?? "",
-		imageUrl: user.imageUrl,
-	};
+	if (isError || !user) {
+		console.error("Error loading user: ", error);
+
+		return <UserInfoError />;
+	}
 
 	return (
 		<SidebarMenuItem>
@@ -109,7 +72,7 @@ function NavUser() {
 						size="lg"
 						className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
 					>
-						<UserInfo userInfo={userInfo} />
+						<UserInfo user={user} />
 
 						<EllipsisVerticalIcon className="ml-auto size-4" />
 					</SidebarMenuButton>
@@ -123,7 +86,7 @@ function NavUser() {
 				>
 					<DropdownMenuLabel className="p-0 font-normal">
 						<div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-							<UserInfo userInfo={userInfo} />
+							<UserInfo user={user} />
 						</div>
 					</DropdownMenuLabel>
 
@@ -149,6 +112,17 @@ function NavUser() {
 				</DropdownMenuContent>
 			</DropdownMenu>
 		</SidebarMenuItem>
+	);
+}
+
+function NavUser() {
+	return (
+		<ErrorBoundary
+			fallback={<UserInfoError />}
+			onError={(error) => console.error("NavUser error:", error)}
+		>
+			<NavUserContent />
+		</ErrorBoundary>
 	);
 }
 export default NavUser;

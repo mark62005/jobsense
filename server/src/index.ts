@@ -6,10 +6,10 @@ import { errorHandler } from "./middlewares/error-handler";
 import { clerkMiddleware } from "@clerk/express";
 
 import "dotenv/config";
-import { error } from "winston";
 
 /* ROUTE IMPORTS */
 import inngestRoutes from "./routes/inngestRoutes";
+import userRoutes from "./routes/userRoutes";
 
 const app = express();
 
@@ -32,15 +32,11 @@ app.use(express.urlencoded({ extended: true }));
 /* CLERK */
 app.use(clerkMiddleware());
 
-/* ROUTES */
-app.use("/test", async (req, res) => {
-	logger.error("Testing error");
-
-	throw new Error("Testing error");
-});
-
 /* INNGEST ROUTES */
 app.use("/api/inngest", inngestRoutes);
+
+/* ROUTES */
+app.use("/api/users", userRoutes);
 
 /* ERROR HANDLING */
 app.use(errorHandler);

@@ -6,6 +6,7 @@ import {
 
 import { NonRetriableError } from "inngest";
 import { inngest } from "../..";
+import { logger } from "../../../../logger";
 import { verifyWebhookOrThrow } from "../../utils/clerk";
 import {
 	insertUser,
@@ -16,6 +17,7 @@ export const clerkCreateUser = inngest.createFunction(
 	{
 		id: "clerk/create-db-user",
 		name: "Clerk - Create DB User",
+		retries: 3,
 	},
 	{
 		event: CLERK_EVENTS.USER.CREATED,
@@ -29,40 +31,51 @@ export const clerkCreateUser = inngest.createFunction(
 			});
 		});
 
-		// Create user in database
-		const userId = await step.run("create-db-user", async () => {
-			console.log("CREATING USER IN DATABASE>>>");
+		try {
+			// Create user in database
+			const userId = await step.run("create-db-user", async () => {
+				const userData = event.data.data;
 
-			const userData = event.data.data;
+				const email = userData.email_addresses.find(
+					(email) => email.id === userData.primary_email_address_id,
+				);
+				if (!email || email === null) {
+					throw new NonRetriableError(USER_ERRORS.PRIMARY_EMAIL_NOT_FOUND);
+				}
 
-			const email = userData.email_addresses.find(
-				(email) => email.id === userData.primary_email_address_id,
-			);
-			if (!email || email === null) {
-				throw new NonRetriableError(USER_ERRORS.PRIMARY_EMAIL_NOT_FOUND);
-			}
+				const name = [userData.first_name, userData.last_name]
+					.filter(Boolean)
+					.join(" ");
+				const fullName = `${name[0]} ${name[1]}`.trim();
 
-			const name = [userData.first_name, userData.last_name]
-				.filter(Boolean)
-				.join(" ");
-			const fullName = `${name[0]} ${name[1]}`.trim();
+				await insertUser({
+					id: userData.id,
+					name: fullName,
+					email: email.email_address,
+					imageUrl: userData.image_url,
+					createdAt: new Date(userData.created_at),
+					updatedAt: new Date(userData.updated_at),
+				});
 
-			await insertUser({
-				id: userData.id,
-				name: fullName,
-				email: email.email_address,
-				imageUrl: userData.image_url,
-				createdAt: new Date(userData.created_at),
-				updatedAt: new Date(userData.updated_at),
+				return userData.id;
 			});
 
-			return userData.id;
-		});
+			// Create user notification setting in database
+			await step.run("create-db-user-notification-setting", async () => {
+				console.log("CREATING USER NOTIF IN DATABASE>>>");
+				await insertUserNotificationSetting({ userId });
+			});
 
-		// Create user notification setting in database
-		await step.run("create-db-user-notification-setting", async () => {
-			console.log("CREATING USER NOTIF IN DATABASE>>>");
-			await insertUserNotificationSetting({ userId });
-		});
+			logger.info("User synced successfully", {
+				userId: event.data.data.id,
+			});
+		} catch (error) {
+			logger.error("Failed to sync user from Clerk", {
+				userId: event.data.data.id,
+				error: error,
+			});
+
+			throw error;
+		}
 	},
 );
