@@ -9,7 +9,7 @@ import {
 	SidebarMenuButton,
 	SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import AppLogo from "../AppLogo";
+import AppLogo from "../shared/AppLogo";
 
 function AppSidebarHeader() {
 	return (
@@ -44,9 +44,7 @@ function AppSidebar({ contentNode, footerNode, ...props }: AppSidebarProps) {
 
 			<SidebarContent>{contentNode}</SidebarContent>
 
-			<SidebarFooter>
-				<SidebarMenu>{footerNode}</SidebarMenu>
-			</SidebarFooter>
+			{footerNode}
 		</Sidebar>
 	);
 }

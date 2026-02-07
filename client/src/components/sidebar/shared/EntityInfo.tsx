@@ -2,7 +2,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 
-export function UserInfoSkeleton() {
+export function EntityInfoSkeleton() {
 	return (
 		<SidebarMenuItem>
 			<SidebarMenuButton
@@ -20,7 +20,11 @@ export function UserInfoSkeleton() {
 	);
 }
 
-export function UserInfoError() {
+interface EntityInfoErrorProps {
+	variant: "user" | "organization";
+}
+
+export function EntityInfoError({ variant }: EntityInfoErrorProps) {
 	return (
 		<SidebarMenuItem>
 			<SidebarMenuButton
@@ -32,7 +36,7 @@ export function UserInfoError() {
 				</Avatar>
 				<div className="grid flex-1 text-left text-sm leading-tight">
 					<span className="truncate font-medium text-destructive">
-						Error loading user
+						Error loading {variant}
 					</span>
 				</div>
 			</SidebarMenuButton>
@@ -40,17 +44,13 @@ export function UserInfoError() {
 	);
 }
 
-interface UserInfoProps {
-	user: {
-		name: string;
-		email: string;
-		imageUrl: string;
-	};
+interface EntityInfoProps {
+	name: string;
+	email: string;
+	imageUrl: string;
 }
 
-export function UserInfo({ user }: UserInfoProps) {
-	const { name, email, imageUrl } = user;
-
+export function EntityInfo({ name, email, imageUrl }: EntityInfoProps) {
 	const nameInitials = name
 		.split(" ")
 		.slice(0, 2)
