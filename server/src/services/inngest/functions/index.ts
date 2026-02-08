@@ -1,7 +1,9 @@
-import { clerkCreateUser } from "./clerk";
+import { clerkCreateOrganization, clerkCreateUser } from "./clerk";
 
 export const inngestFunctions = [
 	/** CLERK **/
 	/* USER */
 	clerkCreateUser,
+	/* ORGANIZATION */
+	clerkCreateOrganization,
 ];
