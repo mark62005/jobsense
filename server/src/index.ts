@@ -10,6 +10,7 @@ import "dotenv/config";
 /* ROUTE IMPORTS */
 import inngestRoutes from "./routes/inngestRoutes";
 import userRoutes from "./routes/userRoutes";
+import organizationRoutes from "./routes/organizationRoutes";
 
 const app = express();
 
@@ -37,6 +38,7 @@ app.use("/api/inngest", inngestRoutes);
 
 /* ROUTES */
 app.use("/api/users", userRoutes);
+app.use("/api/organizations", organizationRoutes);
 
 /* ERROR HANDLING */
 app.use(errorHandler);
