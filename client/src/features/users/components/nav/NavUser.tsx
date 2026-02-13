@@ -2,8 +2,9 @@
 
 import type { TNavUserLink } from "./NavUserLink";
 
-import { useClerk } from "@clerk/nextjs";
+import { useClerk, useUser } from "@clerk/nextjs";
 import { useGetMeQuery } from "../../usersApi";
+import { useQueryWithRetry } from "@/features/auth/hooks/useQueryWithRetry";
 
 import {
 	CircleUserRoundIcon,
@@ -48,17 +49,29 @@ function NavUserContent() {
 		},
 	] as const;
 
+	const { isLoaded, isSignedIn } = useUser();
 	const { openUserProfile } = useClerk();
 	const { isMobile, setOpenMobile } = useSidebar();
 
-	const { data: user, isLoading, isError, error } = useGetMeQuery();
+	const {
+		data: user,
+		isLoading,
+		isSyncing,
+		isError,
+		error,
+	} = useQueryWithRetry(
+		useGetMeQuery(undefined, {
+			skip: !isLoaded || !isSignedIn,
+		}),
+		"USER_NOT_SYNCED",
+	);
 
 	function handleProfileClick() {
 		openUserProfile();
 		setOpenMobile(false);
 	}
 
-	if (isLoading || (!user && !isError)) {
+	if (isLoading || isSyncing || (!user && !isError)) {
 		return <EntityInfoSkeleton />;
 	}
 

@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from "express";
-import type { User } from "@/generated/prisma";
+import type { User } from "../generated/prisma";
 
 import { getAuth } from "@clerk/express";
 import { logger } from "../logger";
@@ -31,9 +31,10 @@ export function requireAuth(req: Request, res: Response, next: NextFunction) {
 				method: req.method,
 			});
 
-			return res
-				.status(401)
-				.json({ error: "Unauthorized - No token provided." });
+			return res.status(401).json({
+				error: "Unauthorized - No token provided.",
+				code: "NO_AUTH_TOKEN",
+			});
 		}
 
 		const auth = getAuth(req);

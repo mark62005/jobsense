@@ -11,10 +11,15 @@ import { Provider } from "react-redux";
 
 function StoreProvider({ children }: WithChildrenProps) {
 	const { getToken } = useAuth();
+
+	const getTokenRef = useRef(getToken);
+
+	getTokenRef.current = getToken;
+
 	const storeRef = useRef<AppStore | null>(null);
 
 	if (!storeRef.current) {
-		storeRef.current = setupStore(getToken);
+		storeRef.current = setupStore(() => getTokenRef.current());
 	}
 
 	return <Provider store={storeRef.current}>{children}</Provider>;

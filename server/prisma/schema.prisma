@@ -15,10 +15,14 @@ model User {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
 
+  // Job Seekers
   notificationSetting           UserNotificationSetting?
   resume                        Resume?
   userSettingUnderOrganizations UserSettingUnderOrganization[]
   applications                  Application[]
+
+  // Employers
+  ownedOrganization Organization? @relation("OrganizationOwner")
 
   @@map("users")
 }
@@ -30,8 +34,14 @@ model Organization {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
 
-  jobListings                   JobListing[]
+  jobListings JobListing[]
+
+  // Job seekers following this organization (for notifications)
   userSettingUnderOrganizations UserSettingUnderOrganization[]
+
+  // Employers
+  ownerId String? @unique @map("owner_id")
+  owner   User?   @relation("OrganizationOwner", fields: [ownerId], references: [id], onDelete: SetNull)
 
   @@map("organizations")
 }

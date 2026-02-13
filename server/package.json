@@ -12,6 +12,7 @@
 		"postprisma:generate": "shx cp -r src/generated/prisma/index.d.ts ../client/src/types/prisma.d.ts",
 		"prisma:studio": "prisma studio",
 		"inngest:dev": "inngest-cli dev -u http://localhost:8000/api/inngest",
+		"ngrok:dev": "dotenv -- ngrok http --url=$NGROK_URL 8000",
 		"dev:all": "mprocs"
 	},
 	"keywords": [],
