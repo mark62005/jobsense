@@ -16,9 +16,10 @@ export async function getCurrentAuthUser(req: Request, res: Response) {
 				method: req.method,
 			});
 
-			return res
-				.status(500)
-				.json({ message: "User has not been attached yet." });
+			return res.status(404).json({
+				error: "User not found",
+				code: "USER_NOT_SYNCED",
+			});
 		}
 
 		return res.json(req.user);

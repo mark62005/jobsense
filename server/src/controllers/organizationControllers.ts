@@ -11,11 +11,11 @@ import { logger } from "../logger";
 export async function getOrganizationById(req: Request, res: Response) {
 	try {
 		const { id } = req.params;
-		const idStr = id as string;
+		const orgId = id as string;
 
 		const organization = await prisma.organization.findUnique({
 			where: {
-				id: idStr,
+				id: orgId,
 			},
 		});
 
@@ -25,10 +25,14 @@ export async function getOrganizationById(req: Request, res: Response) {
 				method: req.method,
 			});
 
-			return res.status(404).json({ message: "Organization not found." });
+			return res.status(404).json({
+				error: "Organization not found.",
+				errorCode: "NO_ORGANIZATION",
+			});
 		}
 
-		return res.json(req.user);
+		logger.info(`Organziation retrieved successfully.`);
+		return res.json(organization);
 	} catch (error) {
 		logger.error(`${error}`, {
 			path: req.path,

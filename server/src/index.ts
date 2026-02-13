@@ -8,6 +8,7 @@ import { clerkMiddleware } from "@clerk/express";
 import "dotenv/config";
 
 /* ROUTE IMPORTS */
+import clerkWebhookRoutes from "./routes/clerkWebhookRoutes";
 import inngestRoutes from "./routes/inngestRoutes";
 import userRoutes from "./routes/userRoutes";
 import organizationRoutes from "./routes/organizationRoutes";
@@ -15,15 +16,31 @@ import organizationRoutes from "./routes/organizationRoutes";
 const app = express();
 
 /* SECURITY */
-app.use(helmet());
+// app.use(helmet());
+app.use(
+	helmet({
+		contentSecurityPolicy: false, // Disable CSP for development
+	}),
+);
 app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin" }));
 
 /* CORS */
 app.use(
 	cors({
-		origin: process.env.CLIENT_URL,
+		origin: [
+			process.env.CLIENT_URL ?? "",
+			"http://localhost:8288",
+			"sigrid-bulbiferous-botfly.ngrok-free.dev",
+		],
 		credentials: true,
 	}),
+);
+
+/* CLERK WEBHOOK */
+app.use(
+	"/api/webhooks/clerk",
+	express.raw({ type: "application/json" }), // Raw body
+	clerkWebhookRoutes,
 );
 
 /* BODY PARSING */
