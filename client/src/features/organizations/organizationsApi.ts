@@ -8,7 +8,7 @@ export const organizationsApi = baseApi.injectEndpoints({
 		 * Fetch current user's organization
 		 */
 		getMyOrganization: builder.query<TOrganization, void>({
-			query: () => "/api/organizations/me",
+			query: () => "/organizations/me",
 			providesTags: ["Organization"],
 		}),
 		/**
@@ -16,7 +16,7 @@ export const organizationsApi = baseApi.injectEndpoints({
 		 */
 		createOrganization: builder.mutation<TOrganization, TOrganizationPayload>({
 			query: (data) => ({
-				url: "/api/organizations",
+				url: "/organizations",
 				method: "POST",
 				body: data,
 			}),
@@ -27,7 +27,7 @@ export const organizationsApi = baseApi.injectEndpoints({
 		 */
 		updateOrganization: builder.mutation<TOrganization, TOrganizationPayload>({
 			query: (data) => ({
-				url: "/api/organizations/me",
+				url: "/organizations/me",
 				method: "PATCH",
 				body: data,
 			}),

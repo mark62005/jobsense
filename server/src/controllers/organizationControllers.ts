@@ -25,7 +25,7 @@ export async function getMyOrganization(req: Request, res: Response) {
 
 		const organization = await prisma.organization.findUnique({
 			where: {
-				ownerId: req.user!.id,
+				ownerId: req.user.id,
 			},
 		});
 
@@ -37,7 +37,7 @@ export async function getMyOrganization(req: Request, res: Response) {
 
 			return res.status(404).json({
 				error: "Organization not found.",
-				errorCode: "ORGANIZATION_NOT_FOUND",
+				code: "ORGANIZATION_NOT_FOUND",
 			});
 		}
 

@@ -12,10 +12,11 @@ import {
 
 const router = Router();
 
-router.get("/:id", requireAuth, getOrganizationById);
 /* AUTH USER RELATED */
 router.get("/me", requireAuth, attachUser, getMyOrganization);
 router.post("/", requireAuth, attachUser, createOrganization);
 router.patch("/me", requireAuth, attachUser, updateMyOrganization);
+
+router.get("/:id", requireAuth, getOrganizationById);
 
 export default router;
