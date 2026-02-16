@@ -1,7 +1,7 @@
 import { Router } from "express";
 
 import { requireAuth } from "../middlewares/require-auth";
-import { attachUser } from "../middlewares/attach-user";
+import { withUser } from "../middlewares/chains";
 
 import {
 	createOrganization,
@@ -13,9 +13,9 @@ import {
 const router = Router();
 
 /* AUTH USER RELATED */
-router.get("/me", requireAuth, attachUser, getMyOrganization);
-router.post("/", requireAuth, attachUser, createOrganization);
-router.patch("/me", requireAuth, attachUser, updateMyOrganization);
+router.get("/me", ...withUser, getMyOrganization);
+router.post("/", ...withUser, createOrganization);
+router.patch("/me", ...withUser, updateMyOrganization);
 
 router.get("/:id", requireAuth, getOrganizationById);
 
