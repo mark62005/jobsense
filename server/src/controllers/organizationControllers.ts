@@ -2,6 +2,7 @@ import type { Request, Response } from "express";
 
 import { prisma } from "../services/prisma/client";
 import { logger } from "../logger";
+import { ApiError, sendError } from "../utils/apiError";
 
 /**
  * GET /api/organizations/me
@@ -9,18 +10,11 @@ import { logger } from "../logger";
  * Get the organization owned by current user
  */
 export async function getMyOrganization(req: Request, res: Response) {
+	const apiErrorOptions = { path: req.path, method: req.method };
+
 	try {
 		if (!req.user) {
-			logger.error("401 Unauthorized user."),
-				{
-					path: req.path,
-					method: req.method,
-				};
-
-			return res.status(401).json({
-				error: "Unauthorized user.",
-				code: "UNAUTHORIZED",
-			});
+			return ApiError.unauthorized(res, apiErrorOptions);
 		}
 
 		const organization = await prisma.organization.findUnique({
@@ -30,26 +24,21 @@ export async function getMyOrganization(req: Request, res: Response) {
 		});
 
 		if (!organization) {
-			logger.error("404 Organization not found.", {
-				path: req.path,
-				method: req.method,
-			});
-
-			return res.status(404).json({
-				error: "Organization not found.",
-				code: "ORGANIZATION_NOT_FOUND",
-			});
+			return ApiError.organizationNotFound(res, apiErrorOptions);
 		}
 
 		logger.info(`Organziation retrieved successfully.`);
 		return res.json(organization);
 	} catch (error) {
-		logger.error(`${error}`, {
-			path: req.path,
-			method: req.method,
-		});
-
-		return res.status(500).json({ error: "Error fetching organization." });
+		return sendError(
+			res,
+			{
+				STATUS_CODE: 500,
+				MESSAGE: "Error fetching organization.",
+				CODE: "FETCH_ORGANIZATION_ERROR",
+			},
+			apiErrorOptions,
+		);
 	}
 }
 
@@ -59,6 +48,8 @@ export async function getMyOrganization(req: Request, res: Response) {
  * Get specific organization details with organizationId
  */
 export async function getOrganizationById(req: Request, res: Response) {
+	const apiErrorOptions = { path: req.path, method: req.method };
+
 	try {
 		const { id } = req.params;
 		const orgId = id as string;
@@ -70,26 +61,21 @@ export async function getOrganizationById(req: Request, res: Response) {
 		});
 
 		if (!organization) {
-			logger.error("404 Organization not found.", {
-				path: req.path,
-				method: req.method,
-			});
-
-			return res.status(404).json({
-				error: "Organization not found.",
-				errorCode: "ORGANIZATION_NOT_FOUND",
-			});
+			return ApiError.organizationNotFound(res, apiErrorOptions);
 		}
 
 		logger.info(`Organziation retrieved successfully.`);
 		return res.json(organization);
 	} catch (error) {
-		logger.error(`${error}`, {
-			path: req.path,
-			method: req.method,
-		});
-
-		return res.status(500).json({ message: "Error fetching organization." });
+		return sendError(
+			res,
+			{
+				STATUS_CODE: 500,
+				MESSAGE: "Error fetching organization.",
+				CODE: "FETCH_ORGANIZATION_ERROR",
+			},
+			apiErrorOptions,
+		);
 	}
 }
 
@@ -99,18 +85,11 @@ export async function getOrganizationById(req: Request, res: Response) {
  * Create organization for current user
  */
 export async function createOrganization(req: Request, res: Response) {
+	const apiErrorOptions = { path: req.path, method: req.method };
+
 	try {
 		if (!req.user) {
-			logger.error("401 Unauthorized user."),
-				{
-					path: req.path,
-					method: req.method,
-				};
-
-			return res.status(401).json({
-				error: "Unauthorized user.",
-				code: "UNAUTHORIZED",
-			});
+			return ApiError.unauthorized(res, apiErrorOptions);
 		}
 
 		// Check if user already has an organization
@@ -119,27 +98,21 @@ export async function createOrganization(req: Request, res: Response) {
 		});
 
 		if (existingOrg) {
-			logger.error("Organization existed."),
-				{
-					path: req.path,
-					method: req.method,
-				};
-
-			return res.status(400).json({
-				error: "You already have an organization",
-				code: "ORGANIZATION_EXISTS",
-			});
+			return ApiError.organizationExists(res, apiErrorOptions);
 		}
 
 		const { name, imageUrl } = req.body;
 
 		if (!name) {
-			logger.error("Organization name is required."),
+			return sendError(
+				res,
 				{
-					path: req.path,
-					method: req.method,
-				};
-			return res.status(400).json({ error: "Organization name is required." });
+					STATUS_CODE: 400,
+					MESSAGE: "Organization name is required.",
+					CODE: "MISSING_ORGANIZATION_NAME",
+				},
+				apiErrorOptions,
+			);
 		}
 
 		const organization = await prisma.organization.create({
@@ -153,12 +126,15 @@ export async function createOrganization(req: Request, res: Response) {
 		logger.info(`Organziation created successfully.`);
 		return res.status(201).json(organization);
 	} catch (error) {
-		logger.error(`${error}`, {
-			path: req.path,
-			method: req.method,
-		});
-
-		return res.status(500).json({ error: "Error creating organization." });
+		return sendError(
+			res,
+			{
+				STATUS_CODE: 500,
+				MESSAGE: "Error creating organization.",
+				CODE: "CREATE_ORGANIZATION_ERROR",
+			},
+			apiErrorOptions,
+		);
 	}
 }
 
@@ -167,18 +143,11 @@ export async function createOrganization(req: Request, res: Response) {
  * Update current user's organization
  */
 export async function updateMyOrganization(req: Request, res: Response) {
+	const apiErrorOptions = { path: req.path, method: req.method };
+
 	try {
 		if (!req.user) {
-			logger.error("401 Unauthorized user."),
-				{
-					path: req.path,
-					method: req.method,
-				};
-
-			return res.status(401).json({
-				error: "Unauthorized user.",
-				code: "UNAUTHORIZED",
-			});
+			return ApiError.unauthorized(res, apiErrorOptions);
 		}
 
 		// Check if the organization to updated exists
@@ -189,15 +158,7 @@ export async function updateMyOrganization(req: Request, res: Response) {
 		});
 
 		if (!organization) {
-			logger.error("404 Organization not found.", {
-				path: req.path,
-				method: req.method,
-			});
-
-			return res.status(404).json({
-				error: "Organization not found.",
-				errorCode: "ORGANIZATION_NOT_FOUND",
-			});
+			return ApiError.organizationNotFound(res, apiErrorOptions);
 		}
 
 		const { name, imageUrl } = req.body;
@@ -215,11 +176,14 @@ export async function updateMyOrganization(req: Request, res: Response) {
 		logger.info(`Organziation updated successfully.`);
 		return res.status(201).json(updatedOrganization);
 	} catch (error) {
-		logger.error(`${error}`, {
-			path: req.path,
-			method: req.method,
-		});
-
-		return res.status(500).json({ error: "Error updating organization." });
+		return sendError(
+			res,
+			{
+				STATUS_CODE: 500,
+				MESSAGE: "Error updating organization.",
+				CODE: "UPDATE_ORGANIZATION_ERROR",
+			},
+			apiErrorOptions,
+		);
 	}
 }
