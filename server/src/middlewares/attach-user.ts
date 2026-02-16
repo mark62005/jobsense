@@ -1,20 +1,18 @@
 import type { Request, Response, NextFunction } from "express";
 
 import { prisma } from "../services/prisma/client";
-import { logger } from "../logger";
+import { ApiError, sendError } from "../utils/apiError";
 
 export async function attachUser(
 	req: Request,
 	res: Response,
 	next: NextFunction,
 ) {
+	const apiErrorOptions = { path: req.path, method: req.method };
+
 	try {
 		if (!req.auth?.userId) {
-			logger.error("Unauthorized - user ID missing.", {
-				path: req.path,
-				method: req.method,
-			});
-			return res.status(401).json({ error: "Unauthorized - user ID missing." });
+			return ApiError.noAuthUserId(res, apiErrorOptions);
 		}
 
 		const userId = req.auth.userId;
@@ -28,23 +26,20 @@ export async function attachUser(
 		});
 
 		if (!user) {
-			logger.error("User not synced from Clerk.", {
-				path: req.path,
-				method: req.method,
-			});
-			return res.status(404).json({
-				error: "Account setup in progress. Please try again in a moment.",
-				code: "USER_NOT_SYNCED",
-			});
+			return ApiError.userNotSynced(res, apiErrorOptions);
 		}
 
 		req.user = user;
 		next();
 	} catch (error) {
-		logger.error("Error attaching user: " + error, {
-			path: req.path,
-			method: req.method,
-		});
-		return res.status(500).json({ error: "Error attaching user." });
+		return sendError(
+			res,
+			{
+				STATUS_CODE: 500,
+				MESSAGE: "Error attaching user.",
+				CODE: "ATTACH_USER_ERROR",
+			},
+			apiErrorOptions,
+		);
 	}
 }

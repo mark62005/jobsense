@@ -1,20 +1,20 @@
-import type { Request, Response, NextFunction } from "express";
-import { logger } from "../logger";
+import type { Request, Response } from "express";
 
-export function errorHandler(
-	err: any,
-	req: Request,
-	res: Response,
-	next: NextFunction,
-) {
+import { sendError } from "../utils/apiError";
+
+export function errorHandler(err: any, req: Request, res: Response) {
 	const statusCode = err.statusCode || 500;
 
-	logger.error(err, {
-		path: req.path,
-		method: req.method,
-	});
-
-	res.status(statusCode).json({
-		message: statusCode === 500 ? "Internal server error" : err.message,
-	});
+	return sendError(
+		res,
+		{
+			STATUS_CODE: statusCode,
+			MESSAGE: statusCode === 500 ? "Internal server error" : err.message,
+			CODE: "INTERNAL_SERVER_ERROR",
+		},
+		{
+			path: req.path,
+			method: req.method,
+		},
+	);
 }

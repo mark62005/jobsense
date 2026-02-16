@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 
-import { logger } from "../logger";
+import { ApiError, sendError } from "../utils/apiError";
 
 /**
  * GET /api/users/me
@@ -9,26 +9,19 @@ import { logger } from "../logger";
  * This is the endpoint your frontend's useGetMeQuery() calls
  */
 export async function getCurrentAuthUser(req: Request, res: Response) {
+	const apiErrorOptions = { path: req.path, method: req.method };
+
 	try {
 		if (!req.user) {
-			logger.error(`User has not been attached.`, {
-				path: req.path,
-				method: req.method,
-			});
-
-			return res.status(404).json({
-				error: "User not found",
-				code: "USER_NOT_SYNCED",
-			});
+			return ApiError.userNotSynced(res, apiErrorOptions);
 		}
 
 		return res.json(req.user);
 	} catch (error) {
-		logger.error(`${error}`, {
-			path: req.path,
-			method: req.method,
+		return sendError(res, {
+			STATUS_CODE: 500,
+			MESSAGE: "Error fetching current auth user.",
+			CODE: "FETCH_USER_ERROR",
 		});
-
-		return res.status(500).json({ message: "Error fetching current user." });
 	}
 }

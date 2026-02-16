@@ -1,8 +1,8 @@
 import type { Request, Response, NextFunction } from "express";
-import type { User } from "../generated/prisma";
+import type { User, Organization } from "../generated/prisma";
 
 import { getAuth } from "@clerk/express";
-import { logger } from "../logger";
+import { ApiError, sendError } from "../utils/apiError";
 
 declare global {
 	namespace Express {
@@ -12,40 +12,23 @@ declare global {
 				sessionId: string;
 			};
 			user?: User;
-			// For organization-scoped requests
-			organizationMembership?: {
-				organizationId: string;
-				role: "admin" | "member";
-			};
+			organization?: Organization;
 		}
 	}
 }
 
 export function requireAuth(req: Request, res: Response, next: NextFunction) {
+	const apiErrorOptions = { path: req.path, method: req.method };
+
 	try {
 		const authHeader = req.headers.authorization;
-
 		if (!authHeader || !authHeader.startsWith("Bearer ")) {
-			logger.error("Unauthorized - No token provided.", {
-				path: req.path,
-				method: req.method,
-			});
-
-			return res.status(401).json({
-				error: "Unauthorized - No token provided.",
-				code: "NO_AUTH_TOKEN",
-			});
+			return ApiError.noAuthToken(res, apiErrorOptions);
 		}
 
 		const auth = getAuth(req);
-
 		if (!auth.userId) {
-			logger.error("Unauthorized - Invalid token.", {
-				path: req.path,
-				method: req.method,
-			});
-
-			return res.status(401).json({ error: "Unauthorized - Invalid token." });
+			return ApiError.invalidAuthToken(res, apiErrorOptions);
 		}
 
 		// Attach auth info to request
@@ -56,13 +39,14 @@ export function requireAuth(req: Request, res: Response, next: NextFunction) {
 
 		next();
 	} catch (error) {
-		logger.error("Unauthorized - Error verifying token. " + error, {
-			path: req.path,
-			method: req.method,
-		});
-
-		return res
-			.status(401)
-			.json({ error: "Unauthorized - Error verifying token." });
+		return sendError(
+			res,
+			{
+				STATUS_CODE: 401,
+				MESSAGE: "Unauthorized - Error verifying token.",
+				CODE: "UNAUTHORIZED",
+			},
+			apiErrorOptions,
+		);
 	}
 }
