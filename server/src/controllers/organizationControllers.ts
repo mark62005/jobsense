@@ -13,28 +13,18 @@ export async function getMyOrganization(req: Request, res: Response) {
 	const apiErrorOptions = { path: req.path, method: req.method };
 
 	try {
-		if (!req.user) {
+		if (!req.organization) {
 			return ApiError.unauthorized(res, apiErrorOptions);
 		}
 
-		const organization = await prisma.organization.findUnique({
-			where: {
-				ownerId: req.user.id,
-			},
-		});
-
-		if (!organization) {
-			return ApiError.organizationNotFound(res, apiErrorOptions);
-		}
-
 		logger.info(`Organziation retrieved successfully.`);
-		return res.json(organization);
+		return res.json(req.organization);
 	} catch (error) {
 		return sendError(
 			res,
 			{
 				STATUS_CODE: 500,
-				MESSAGE: "Error fetching organization.",
+				MESSAGE: "Error fetching auth user's organization.",
 				CODE: "FETCH_ORGANIZATION_ERROR",
 			},
 			apiErrorOptions,
@@ -146,26 +136,15 @@ export async function updateMyOrganization(req: Request, res: Response) {
 	const apiErrorOptions = { path: req.path, method: req.method };
 
 	try {
-		if (!req.user) {
+		if (!req.organization) {
 			return ApiError.unauthorized(res, apiErrorOptions);
-		}
-
-		// Check if the organization to updated exists
-		const organization = await prisma.organization.findUnique({
-			where: {
-				ownerId: req.user!.id,
-			},
-		});
-
-		if (!organization) {
-			return ApiError.organizationNotFound(res, apiErrorOptions);
 		}
 
 		const { name, imageUrl } = req.body;
 
 		const updatedOrganization = await prisma.organization.update({
 			where: {
-				id: organization.id,
+				id: req.organization.id,
 			},
 			data: {
 				...(name && { name }),

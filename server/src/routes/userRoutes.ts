@@ -1,12 +1,10 @@
 import { Router } from "express";
 
-import { requireAuth } from "../middlewares/require-auth";
-import { attachUser } from "../middlewares/attach-user";
-
+import { withUser } from "../middlewares/chains";
 import { getCurrentAuthUser } from "../controllers/userControllers";
 
 const router = Router();
 
-router.get("/me", requireAuth, attachUser, getCurrentAuthUser);
+router.get("/me", ...withUser, getCurrentAuthUser);
 
 export default router;
